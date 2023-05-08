@@ -6,14 +6,22 @@ using System.Threading.Tasks;
 
 namespace VKTest.Models
 {
-    public class User
+    public class UserDTO
     {
         public int Id { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-        public int UserGroupId { get; set; }
-        public int UserStateId { get; set; }
+        public string UserGroupCode { get; set; }
 
+        public UserDTO UserToDTO(User user)
+        {
+            return new UserDTO
+            {
+                Id = user.Id,
+                Login = user.Login,
+            };
+        }
     }
+
+    
 }

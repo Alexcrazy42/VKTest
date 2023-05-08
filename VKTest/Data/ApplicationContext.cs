@@ -7,17 +7,14 @@ namespace VKTest.Data
     {
 
         public DbSet<User> Users { get; set; }
-        //public DbSet<UserGroup> UserGroup { get; set; }
-        //public DbSet<UserState> UserState { get; set; }
+        public DbSet<UserGroup> UserGroups { get; set; }
+        public DbSet<UserState> UserStates { get; set; }
 
-        protected readonly IConfiguration Configuration;
-
-        public ApplicationContext(IConfiguration configuration)
+        public ApplicationContext()
         {
-            Configuration = configuration;
         }
 
-        public ApplicationContext(DbContextOptions<ApplicationContext> options) 
+        public ApplicationContext(DbContextOptions<ApplicationContext> options)
             : base(options)
         {
         }
@@ -27,7 +24,7 @@ namespace VKTest.Data
             if (!optionsBuilder.IsConfigured)
             {
                 optionsBuilder.UseNpgsql("Host=localhost; Port = 5432; Database=VK; Username=postgres; Password=26031974yula;");
-                //optionsBuilder.EnableSensitiveDataLogging();
+                optionsBuilder.EnableSensitiveDataLogging();
             }
         }
 
