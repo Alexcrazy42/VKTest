@@ -23,7 +23,8 @@ namespace VKTest.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql("Host=localhost; Port = 5432; Database=VK; Username=postgres; Password=26031974yula;");
+                string connection = "Host=localhost; Port = 5432; Database=VK; Username=postgres; Password=26031974yula;";
+                optionsBuilder.UseNpgsql(connection);
                 optionsBuilder.EnableSensitiveDataLogging();
             }
         }

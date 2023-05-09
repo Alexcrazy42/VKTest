@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using VKTest.Data;
 using VKTest.Models;
-
+using Microsoft.Extensions.Logging.Console;
 namespace VKTest.Controllers
 {
+
+    [Authorize]
     [ApiController]
     [Route("users")]
     public class UserController : ControllerBase
@@ -20,14 +22,15 @@ namespace VKTest.Controllers
         }
 
 
-
+        [AllowAnonymous]
         [HttpGet("all")]
-        public async Task<ActionResult<IEnumerable<object>>> GetAllUsers()
+        public async Task<ActionResult<IEnumerable<object>>> GetAllUsers() // 
         {
             if (_context.Users == null)
             {
                 return NotFound();
             }
+
 
             var users = from u in _context.Users
                         join ug in _context.UserGroups on u.UserGroupId equals ug.Id into ug
@@ -41,9 +44,16 @@ namespace VKTest.Controllers
                             Password = u.Password,
                             CreatedDate = u.CreatedDate,
                             UserGroup = uug1.Code,
-                            UserState = ugs1.Code
-
+                            UserState = ugs1.Code,
                         };
+
+
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddSimpleConsole(i => i.ColorBehavior = LoggerColorBehavior.Default);
+            });
+            var logger = loggerFactory.CreateLogger<UserController>();
+            logger.LogInformation($"{users.ToList().GetType()}");
 
             return await users.ToListAsync();
 
@@ -87,7 +97,7 @@ namespace VKTest.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<object>> GetUser(int id) 
+        public async Task<ActionResult<object>> GetUserById(int id) 
         {
 
             if (_context.Users == null)
@@ -126,6 +136,11 @@ namespace VKTest.Controllers
         [HttpPost]
         public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var userGroup = new UserGroup()
             {
                 Code = userDTO.UserGroupCode,
@@ -159,8 +174,9 @@ namespace VKTest.Controllers
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
+                
                 return CreatedAtAction(
-                    nameof(GetUser),
+                    nameof(GetUserById),
                     new
                     {
                         Id = user.Id,
