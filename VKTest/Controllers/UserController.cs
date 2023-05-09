@@ -1,15 +1,18 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using VKTest.Data;
 using VKTest.Models;
 using Microsoft.Extensions.Logging.Console;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Net.Http;
+
+
 namespace VKTest.Controllers
 {
 
-    [Authorize]
+    
     [ApiController]
     [Route("users")]
     public class UserController : ControllerBase
@@ -22,7 +25,8 @@ namespace VKTest.Controllers
         }
 
 
-        [AllowAnonymous]
+
+        
         [HttpGet("all")]
         public async Task<ActionResult<IEnumerable<object>>> GetAllUsers() // 
         {
@@ -133,13 +137,14 @@ namespace VKTest.Controllers
 
 
 
+
+       
+
         [HttpPost]
         public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDTO)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            
+            
 
             var userGroup = new UserGroup()
             {
@@ -174,7 +179,9 @@ namespace VKTest.Controllers
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                
+
+
+
                 return CreatedAtAction(
                     nameof(GetUserById),
                     new
@@ -227,6 +234,7 @@ namespace VKTest.Controllers
                 return false;
             }
         }
+
 
         
 
