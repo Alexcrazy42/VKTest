@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VKTest.Data;
 using VKTest.Models;
-using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Net.Http;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Memory;
+using System.Net.Cache;
+using System.Reflection;
+using System.Collections;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace VKTest.Controllers
 {
@@ -16,11 +17,15 @@ namespace VKTest.Controllers
     [Route("users")]
     public class UserController : ControllerBase
     {
+        private readonly ILogger<UserController> _logger;
         private readonly ApplicationContext _context;
+        private IMemoryCache _cache;
 
-        public UserController()
+        public UserController(ILogger<UserController> logger, ApplicationContext context, IMemoryCache cache)
         {
-            _context = new ApplicationContext();
+            _logger = logger;
+            _context = context;
+            _cache = cache;
         }
 
 
@@ -139,8 +144,48 @@ namespace VKTest.Controllers
             
             if (HasUserWithThisLogin(userDTO.Login))
             {
-                return StatusCode(403, "This login is taken"); 
+                return StatusCode(403, "This login is taken");
             }
+
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromSeconds(20))
+                    .SetPriority(CacheItemPriority.Normal)
+                    .SetSize(1024);
+
+            
+            
+            
+            //List<string> a;
+            //try
+            //{
+            //    
+            //}
+            //catch
+            //{
+            //    List<string> a = new List<string>();
+            //}
+
+            ////List<string> a = new List<string>();
+            //a.Add("привет");
+            //a.Add("привет1");
+            //_cache.Set("User.Login", a, cacheEntryOptions);
+
+            //try
+            //{
+            //    _cache.TryGetValue("User.Login", out List<string> b);
+            //    foreach (string i in b)
+            //    {
+            //        _logger.LogInformation($"{i}");
+            //    }
+
+
+            //}
+            //catch
+            //{
+            //    _logger.LogInformation("’уйн€");
+            //}
+
+            
 
             var userGroup = new UserGroup()
             {
@@ -159,6 +204,64 @@ namespace VKTest.Controllers
             }
             else
             {
+
+                // попытка сделать запрет регистрации пользователей при отправлени€ запросов с одинаковыми login с интервалом меньше 5 секунд
+                // сначала пыталс€ использовать сессии, потом узнал, что они доступны, только внутри одного клиента
+                // потом узнал про кэш, но к сожалению не нашел как получать все доступные ключи из него 
+                // пыталс€ сделать свой список логинов, которые хран€тс€ по 5 секунд во врем€ регистрации и удал€ютс€ из этого списка после этого срока
+                // но почему-то не кэш был пуст по этому ключу посто€нно
+                // надеюсь будет разбор, как грамотно это сделать
+                /*
+                int numberOfDelaysOf250MilliSeconds = 20; 
+                _cache.TryGetValue("User.Login", out List<string> loginsOfTemporacyRegistation);
+                _logger.LogInformation($"{loginsOfTemporacyRegistation.Count}");
+                if (loginsOfTemporacyRegistation != null && loginsOfTemporacyRegistation.Count != 0)
+                {
+                    loginsOfTemporacyRegistation.Add(userDTO.Login);
+                    _cache.Set("User.Login", loginsOfTemporacyRegistation, cacheEntryOptions);
+                }
+                else
+                {
+                    _cache.Set("User.Login", new List<string>(), cacheEntryOptions);
+                }
+                bool error = false;
+                for (int i = 0; i < numberOfDelaysOf250MilliSeconds; i++)
+                {
+                    Task task = Task.Run(async () =>
+                    {
+                        _cache.TryGetValue("User.Login", out List<string> loginsOfTemporacyRegistation);
+                        if (loginsOfTemporacyRegistation != null && loginsOfTemporacyRegistation.Count != 0)
+                        {
+                            loginsOfTemporacyRegistation = new List<string>();
+                        }
+                        if (!(loginsOfTemporacyRegistation.Where(x => x == userDTO.Login).Count() < 2))
+                        {
+                            loginsOfTemporacyRegistation.Remove(userDTO.Login);
+                            _cache.Set("User.Login", loginsOfTemporacyRegistation, cacheEntryOptions);
+                            error = true;
+                        }
+                        await Task.Delay(250);
+
+                    });
+                    task.GetAwaiter().GetResult();
+                    task.Wait();
+                    if (error)
+                    {
+                        return StatusCode(403, "There was an attempt to register a user with the same login just now, registration was denied");
+                    }
+                }
+                if (loginsOfTemporacyRegistation != null && loginsOfTemporacyRegistation.Count != 0)
+                {
+                    loginsOfTemporacyRegistation.Remove(userDTO.Login);
+                    _cache.Set("User.Login", loginsOfTemporacyRegistation, cacheEntryOptions);
+                }
+                else
+                {
+                    _cache.Set("User.Login", new List<string>(), cacheEntryOptions);
+                }
+                */
+                
+
                 _context.UserStates.Add(userState);
                 _context.UserGroups.Add(userGroup);
                 await _context.SaveChangesAsync();
@@ -171,13 +274,8 @@ namespace VKTest.Controllers
                     UserGroupId = userGroup.Id,
                     UserStateId = userState.Id
                 };
-
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
-
-
-
-
                 return CreatedAtAction(
                     nameof(GetUserById),
                     new
@@ -245,7 +343,8 @@ namespace VKTest.Controllers
         }
 
 
-        
+
+
 
 
 
