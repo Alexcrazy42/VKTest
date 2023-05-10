@@ -154,36 +154,6 @@ namespace VKTest.Controllers
 
             
             
-            
-            //List<string> a;
-            //try
-            //{
-            //    
-            //}
-            //catch
-            //{
-            //    List<string> a = new List<string>();
-            //}
-
-            ////List<string> a = new List<string>();
-            //a.Add("привет");
-            //a.Add("привет1");
-            //_cache.Set("User.Login", a, cacheEntryOptions);
-
-            //try
-            //{
-            //    _cache.TryGetValue("User.Login", out List<string> b);
-            //    foreach (string i in b)
-            //    {
-            //        _logger.LogInformation($"{i}");
-            //    }
-
-
-            //}
-            //catch
-            //{
-            //    _logger.LogInformation("Хуйня");
-            //}
 
             
 
