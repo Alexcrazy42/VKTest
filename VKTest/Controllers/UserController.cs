@@ -2,17 +2,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VKTest.Data;
 using VKTest.Models;
-using Microsoft.Extensions.Logging.Console;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net.Http;
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace VKTest.Controllers
 {
 
-    
+    [Authorize]
     [ApiController]
     [Route("users")]
     public class UserController : ControllerBase
@@ -52,12 +51,7 @@ namespace VKTest.Controllers
                         };
 
 
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddSimpleConsole(i => i.ColorBehavior = LoggerColorBehavior.Default);
-            });
-            var logger = loggerFactory.CreateLogger<UserController>();
-            logger.LogInformation($"{users.ToList().GetType()}");
+            
 
             return await users.ToListAsync();
 
@@ -138,13 +132,15 @@ namespace VKTest.Controllers
 
 
 
-       
-
+        [AllowAnonymous]       
         [HttpPost]
         public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDTO)
         {
             
-            
+            if (HasUserWithThisLogin(userDTO.Login))
+            {
+                return StatusCode(403, "This login is taken"); 
+            }
 
             var userGroup = new UserGroup()
             {
@@ -226,6 +222,19 @@ namespace VKTest.Controllers
         {
             var admin = _context.UserGroups.Where(u => u.Code == "Admin");
             if (admin.ToArray().Length != 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private bool HasUserWithThisLogin(string login)
+        {
+            var user = _context.Users.Where(u => u.Login == login);
+            if (user.ToArray().Length != 0)
             {
                 return true;
             }

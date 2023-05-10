@@ -10,6 +10,8 @@ namespace VKTest.Data
         public DbSet<UserGroup> UserGroups { get; set; }
         public DbSet<UserState> UserStates { get; set; }
 
+
+
         public ApplicationContext()
         {
         }
@@ -28,6 +30,9 @@ namespace VKTest.Data
                 optionsBuilder.EnableSensitiveDataLogging();
             }
         }
+
+
+        
 
     }
 }
