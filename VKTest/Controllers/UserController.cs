@@ -205,12 +205,14 @@ namespace VKTest.Controllers
             else
             {
 
-                // попытка сделать запрет регистрации пользователей при отправления запросов с одинаковыми login с интервалом меньше 5 секунд
-                // сначала пытался использовать сессии, потом узнал, что они доступны, только внутри одного клиента
-                // потом узнал про кэш, но к сожалению не нашел как получать все доступные ключи из него 
-                // пытался сделать свой список логинов, которые хранятся по 5 секунд во время регистрации и удаляются из этого списка после этого срока
-                // но почему-то не кэш был пуст по этому ключу постоянно
-                // надеюсь будет разбор, как грамотно это сделать
+
+                // attempt to disable user registration when sending a receipt involving a login with an interval of less than 5 seconds
+                // session happened first
+                // later learned about the cache, but unfortunately did not find how to get all available keys from it
+                // creates its own list of logins that meet for 5 seconds during registration and are removed from this list after this period
+                // but for some reason it was not cached, it was always empty by this key
+                // there will be an analysis of how competently I hope to do it
+                // in English because Russian characters are not displayed normally in the GitHub 
                 /*
                 int numberOfDelaysOf250MilliSeconds = 20; 
                 _cache.TryGetValue("User.Login", out List<string> loginsOfTemporacyRegistation);
@@ -260,7 +262,7 @@ namespace VKTest.Controllers
                     _cache.Set("User.Login", new List<string>(), cacheEntryOptions);
                 }
                 */
-                
+
 
                 _context.UserStates.Add(userState);
                 _context.UserGroups.Add(userGroup);
